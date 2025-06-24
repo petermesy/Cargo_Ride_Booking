@@ -38,3 +38,20 @@ export const createVehicle = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getDrivers = async (req: Request, res: Response) => {
+  try {
+    const drivers = await Driver.findAll();
+    res.json(drivers.map((d: any) => ({
+      id: d.id,
+      name: d.name,
+      email: d.email,
+      phoneNumber: d.phoneNumber,
+      status: d.status,
+      location: d.location ? { latitude: d.location.coordinates[1], longitude: d.location.coordinates[0] } : null,
+    })));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

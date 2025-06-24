@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDriverBookings = exports.createBooking = void 0;
+exports.getCurrentBooking = exports.getDriverBookings = exports.createBooking = void 0;
 const Booking_1 = __importDefault(require("../models/Booking"));
 const Vehicle_1 = __importDefault(require("../models/Vehicle"));
 const sequelize_1 = require("sequelize");
@@ -56,3 +56,41 @@ const getDriverBookings = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getDriverBookings = getDriverBookings;
+// export const getCurrentBooking = async (req: Request, res: Response) => {
+//   try {
+//     const booking = await Booking.findOne({
+//       where: { driverId: (req as any).user.id, status: 'accepted' },
+//       include: [{ model: User, as: 'user', attributes: ['name'] }],
+//     });
+//     res.json(booking || null);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+const getCurrentBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const booking = yield Booking_1.default.findOne({
+            where: {
+                driverId: req.user.id,
+                status: ['pending', 'accepted'],
+            },
+            include: [{ model: User_1.default, attributes: ['name'] }],
+        });
+        if (booking) {
+            // Normalize user field for frontend compatibility
+            const plain = booking.toJSON();
+            plain.user = plain.User;
+            delete plain.User;
+            res.json(plain);
+        }
+        else {
+            res.json(null);
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+exports.getCurrentBooking = getCurrentBooking;

@@ -15,6 +15,7 @@ interface BookingAttributes {
   createdAt?: Date;
 }
 
+
 class Booking extends Model<BookingAttributes> implements BookingAttributes {
   public id!: number;
   public userId!: number;

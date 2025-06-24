@@ -9,4 +9,5 @@ const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 router.post('/', auth_1.protect, (0, auth_1.restrictTo)('user'), bookingController_1.createBooking);
 router.get('/driver', auth_1.protect, (0, auth_1.restrictTo)('driver'), bookingController_1.getDriverBookings);
+router.get('/current', auth_1.protect, (0, auth_1.restrictTo)('driver'), bookingController_1.getCurrentBooking);
 exports.default = router;

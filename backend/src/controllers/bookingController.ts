@@ -49,3 +49,38 @@ export const getDriverBookings = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// export const getCurrentBooking = async (req: Request, res: Response) => {
+//   try {
+//     const booking = await Booking.findOne({
+//       where: { driverId: (req as any).user.id, status: 'accepted' },
+//       include: [{ model: User, as: 'user', attributes: ['name'] }],
+//     });
+//     res.json(booking || null);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+export const getCurrentBooking = async (req: Request, res: Response) => {
+  try {
+    const booking = await Booking.findOne({
+      where: {
+        driverId: (req as any).user.id,
+        status: ['pending', 'accepted'],
+      },
+      include: [{ model: User, attributes: ['name'] }],
+    });
+    if (booking) {
+      // Normalize user field for frontend compatibility
+      const plain = booking.toJSON();
+      plain.user = plain.User;
+      delete plain.User;
+      res.json(plain);
+    } else {
+      res.json(null);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

@@ -1,4 +1,8 @@
 "use strict";
+// import { Request, Response } from 'express';
+// import Vehicle from '../models/Vehicle';
+// import Driver from '../models/Driver';
+// import { Sequelize } from 'sequelize';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,30 +19,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNearbyVehicles = void 0;
 const Vehicle_1 = __importDefault(require("../models/Vehicle"));
 const Driver_1 = __importDefault(require("../models/Driver"));
-const sequelize_1 = require("sequelize");
+const database_1 = __importDefault(require("../config/database"));
+// ...existing code...
 const getNearbyVehicles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { longitude, latitude, maxDistance = 10000 } = req.query;
+    const { lat, lng, radius } = req.query;
+    if (!lat || !lng || !radius) {
+        return res.status(400).json({ message: 'lat, lng, and radius are required' });
+    }
     try {
         const vehicles = yield Vehicle_1.default.findAll({
-            where: {
-                status: 'active',
-                [sequelize_1.Sequelize.literal(`ST_DWithin(
+            where: database_1.default.literal(`
+        ST_DWithin(
           location,
-          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326),
-          ${maxDistance}
-        )`)]: true,
-            },
-            include: [{ model: Driver_1.default, attributes: ['name', 'phoneNumber'] }],
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326),
+          ${radius}
+        )
+      `),
+            include: [{ model: Driver_1.default, attributes: ['id', 'name', 'phoneNumber'] }],
         });
-        const formattedVehicles = vehicles.map((v) => ({
+        res.json(vehicles.map((v) => ({
             id: v.id,
+            driverId: v.driverId,
+            driver: v.Driver,
+            location: { type: 'Point', coordinates: v.location.coordinates },
             carType: v.carType,
             plateNumber: v.plateNumber,
             status: v.status,
-            driver: v.Driver,
-            location: { type: 'Point', coordinates: v.location.coordinates },
-        }));
-        res.json(formattedVehicles);
+        })));
     }
     catch (error) {
         console.error(error);
@@ -46,3 +53,4 @@ const getNearbyVehicles = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getNearbyVehicles = getNearbyVehicles;
+// ...existing code...
